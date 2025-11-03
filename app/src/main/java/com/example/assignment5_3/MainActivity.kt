@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -11,6 +12,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -47,13 +50,13 @@ class MainActivity : ComponentActivity() {
 }
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
-    data object Home : Screen("home", "Home", icon = Icons.Default.Home)
-    data object Category : Screen("category", "Category", icon = Icons.Default.Share)
-    data object List : Screen("list", "List", icon = Icons.Default.List) {
-        fun createRoute(categoryID: Int) = "list/$categoryID"
+    object Home : Screen("home", "Home", Icons.Default.Home)
+    object Category : Screen("category", "Categories", Icons.Default.Share)
+    object List : Screen("list", "List", Icons.Default.List) {
+        fun createRoute(categoryName: String) = "list/$categoryName"
     }
-    data object Detail : Screen("detail", "Detail", icon = Icons.Default.Place) {
-        fun createRoute(listElementID: Int) = "detail/$listElementID"
+    object Detail : Screen("detail", "Detail", Icons.Default.Place) {
+        fun createRoute(detailId: Int) = "detail/$detailId"
     }
 }
 
@@ -79,20 +82,7 @@ fun MainScreen() {
         bottomBar = {BottomBarComponent(navController = navController)}
     )
     { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = Screen.Home.route,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            // Define a composable for each screen route
-            composable(Screen.Home.route) {
-                Greeting(name = "Home Screen")
-            }
-            composable(Screen.Category.route) {
-                Greeting(name = "Category Screen")
-            }
-            // Add more composable() destinations for List and Detail here
-        }
+        AppNavGraph(navController, Modifier.padding(innerPadding))
     }
 }
 
@@ -136,6 +126,63 @@ fun BottomBarComponent(navController: NavHostController){
                 }
             )
         }
+    }
+}
+
+@Composable
+fun HomeScreen(onCategoryClick: () -> Unit, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        Text("Welcome to Boston!")
+        Button(onClick = onCategoryClick) {
+            Text("Browse Categories")
+        }
+    }
+}
+
+@Composable
+fun CategoriesScreen(onCategorySelected: (String) -> Unit, modifier: Modifier = Modifier) {
+    val categories = listOf("Museums", "Parks", "Restaurants") // your categories
+
+    Column(modifier = modifier) {
+        Text("Categories", style = MaterialTheme.typography.headlineMedium)
+        categories.forEach { category ->
+            Button(
+                onClick = { onCategorySelected(category) },
+                modifier = Modifier.padding(vertical = 4.dp)
+            ) {
+                Text(category)
+            }
+        }
+    }
+}
+
+@Composable
+fun ListScreen(categoryName: String, modifier: Modifier = Modifier, onDetailClick: (Int) -> Unit) {
+    val items = when(categoryName) {
+        "Museums" -> listOf("MIT Museum", "Museum of Science")
+        "Parks" -> listOf("Boston Common", "Public Garden")
+        "Restaurants" -> listOf("Legal Sea Foods", "Union Oyster House")
+        else -> emptyList()
+    }
+
+    Column (modifier = modifier ){
+        Text("Category: $categoryName", style = MaterialTheme.typography.headlineSmall)
+        items.forEachIndexed { index, item ->
+            Button(
+                onClick = { onDetailClick(index) },
+                modifier = Modifier.padding(vertical = 4.dp)
+            ) {
+                Text(item)
+            }
+        }
+    }
+}
+
+@Composable
+fun DetailScreen(detailId: Int, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        Text("Details for item ID: $detailId")
+        // You can fetch and display more detailed information here
     }
 }
 
