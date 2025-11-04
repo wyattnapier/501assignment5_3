@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Share
@@ -70,7 +71,6 @@ val screens = listOf(
 
 val bottomBarScreens = listOf(
     Screen.Home,
-    Screen.Category,
 )
 
 
@@ -105,6 +105,9 @@ fun BottomBarComponent(navController: NavHostController){
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
 
+        val currentRoute = currentDestination?.route
+        val isRootScreen = bottomBarScreens.any { it.route == currentRoute }
+
         bottomBarScreens.forEach { screen ->
             NavigationBarItem(
                 icon = { Icon(screen.icon, contentDescription = null) },
@@ -125,6 +128,15 @@ fun BottomBarComponent(navController: NavHostController){
                         restoreState = true
                     }
                 }
+            )
+        }
+        // adds back arrow when not on home screen
+         if(!isRootScreen) {
+            NavigationBarItem(
+                icon = { Icon(Icons.Default.ArrowBack, contentDescription = "Back") },
+                label = { Text("Back") },
+                selected = false,
+                onClick = { navController.popBackStack() }
             )
         }
     }
