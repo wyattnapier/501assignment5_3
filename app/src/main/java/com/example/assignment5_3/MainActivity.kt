@@ -108,28 +108,21 @@ fun BottomBarComponent(navController: NavHostController){
         val currentRoute = currentDestination?.route
         val isRootScreen = bottomBarScreens.any { it.route == currentRoute }
 
-        bottomBarScreens.forEach { screen ->
-            NavigationBarItem(
-                icon = { Icon(screen.icon, contentDescription = null) },
-                label = { Text(screen.title) },
-                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                onClick = {
-                    // This is the core navigation logic.
-                    navController.navigate(screen.route) {
-                        // Pop up to the start destination of the graph to
-                        // avoid building up a large stack of destinations
-                        // on the back stack as users select items.
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true // Save the state of the screen you're leaving.
-                        }
-                        // Avoid multiple copies of the same destination when re-selecting the same item.
-                        launchSingleTop = true
-                        // Restore state when re-selecting a previously selected item.
-                        restoreState = true
+        // Home button — always visible
+        NavigationBarItem(
+            icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+            label = { Text("Home") },
+            selected = currentRoute == Screen.Home.route,
+            onClick = {
+                // Navigate back to home and clear other screens
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = true
                     }
+                    launchSingleTop = true
                 }
-            )
-        }
+            }
+        )
         // adds back arrow when not on home screen
          if(!isRootScreen) {
             NavigationBarItem(
