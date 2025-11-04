@@ -56,8 +56,9 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
         fun createRoute(categoryName: String) = "list/$categoryName"
     }
     object Detail : Screen("detail", "Detail", Icons.Default.Place) {
-        fun createRoute(detailId: Int) = "detail/$detailId"
+        fun createRoute(categoryName: String, detailId: Int) = "detail/$categoryName/$detailId"
     }
+
 }
 
 val screens = listOf(
@@ -82,7 +83,7 @@ fun MainScreen() {
         bottomBar = {BottomBarComponent(navController = navController)}
     )
     { innerPadding ->
-        AppNavGraph(navController, Modifier.padding(innerPadding))
+        AppNavGraph(Modifier.padding(innerPadding), navController)
     }
 }
 
@@ -157,7 +158,7 @@ fun CategoriesScreen(onCategorySelected: (String) -> Unit, modifier: Modifier = 
 }
 
 @Composable
-fun ListScreen(categoryName: String, modifier: Modifier = Modifier, onDetailClick: (Int) -> Unit) {
+fun ListScreen(categoryName: String, modifier: Modifier = Modifier, onDetailClick: (String, Int) -> Unit) {
     val items = when(categoryName) {
         "Museums" -> listOf("MIT Museum", "Museum of Science")
         "Parks" -> listOf("Boston Common", "Public Garden")
@@ -169,7 +170,7 @@ fun ListScreen(categoryName: String, modifier: Modifier = Modifier, onDetailClic
         Text("Category: $categoryName", style = MaterialTheme.typography.headlineSmall)
         items.forEachIndexed { index, item ->
             Button(
-                onClick = { onDetailClick(index) },
+                onClick = { onDetailClick(categoryName, index) },
                 modifier = Modifier.padding(vertical = 4.dp)
             ) {
                 Text(item)
@@ -179,25 +180,33 @@ fun ListScreen(categoryName: String, modifier: Modifier = Modifier, onDetailClic
 }
 
 @Composable
-fun DetailScreen(detailId: Int, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        Text("Details for item ID: $detailId")
-        // You can fetch and display more detailed information here
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
+fun DetailScreen(categoryName: String, detailId: Int, modifier: Modifier = Modifier) {
+    val detailsMap = mapOf(
+        "Museums" to listOf(
+            "MIT Museum" to "A museum showcasing technology, innovation, and art from MIT’s rich history.",
+            "Museum of Science" to "Interactive exhibits on science, nature, and technology. Great for families."
+        ),
+        "Parks" to listOf(
+            "Boston Common" to "America’s oldest public park, a beautiful green space in the heart of the city.",
+            "Public Garden" to "Famous for its swan boats, lush flowers, and peaceful atmosphere."
+        ),
+        "Restaurants" to listOf(
+            "Legal Sea Foods" to "A Boston classic known for its fresh local seafood and chowder.",
+            "Union Oyster House" to "The oldest continuously operating restaurant in the U.S., serving oysters and history."
+        )
     )
-}
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    Assignment5_3Theme {
-        Greeting("Android")
+    val details = detailsMap[categoryName]
+    val (title, description) = details?.getOrNull(detailId)
+        ?: ("Unknown Place" to "No description available.")
+
+    Column(modifier = modifier.padding(16.dp)) {
+        Text(text = title, style = MaterialTheme.typography.headlineMedium)
+        Text(text = "Category: $categoryName", style = MaterialTheme.typography.bodyLarge)
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp)
+        )
     }
 }

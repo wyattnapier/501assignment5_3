@@ -11,8 +11,8 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun AppNavGraph(
+    modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
@@ -38,22 +38,29 @@ fun AppNavGraph(
 
         // List screen (receives category name as argument)
         composable(
-            route = Screen.List.route + "/{categoryName}",
+            route = "list/{categoryName}",
             arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
         ) { backStackEntry ->
             val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
-            ListScreen(categoryName = categoryName, modifier = modifier) { detailId ->
-                navController.navigate(Screen.Detail.createRoute(detailId))
-            }
+            ListScreen(
+                categoryName = categoryName,
+                onDetailClick = { category, detailId ->
+                    navController.navigate(Screen.Detail.createRoute(category, detailId))
+                }
+            )
         }
 
         // Detail screen
         composable(
-            route = Screen.Detail.route + "/{detailId}",
-            arguments = listOf(navArgument("detailId") { type = NavType.IntType })
+            route = "detail/{categoryName}/{detailId}",
+            arguments = listOf(
+                navArgument("categoryName") { type = NavType.StringType },
+                navArgument("detailId") { type = NavType.IntType }
+            )
         ) { backStackEntry ->
+            val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
             val detailId = backStackEntry.arguments?.getInt("detailId") ?: 0
-            DetailScreen(detailId = detailId, modifier = Modifier)
+            DetailScreen(categoryName = categoryName, detailId = detailId, modifier)
         }
     }
 }
